@@ -10,4 +10,4 @@ Install it as extension in typo3! No configuration needed.
 ##Backend Screenshots
 
 ![ScreenShot](http://i.b0w.me/hH9gw.png)
-![SecondScreenShot](http://b0w.me/CrZKy)
+![SecondScreenShot](http://i.b0w.me/CrZKy.png)
