@@ -32,7 +32,7 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 	 * @todo Define visibility
 	 */
 	public function imageMagickConvert($imagefile, $newExt = '', $w = '', $h = '', $params = '', $frame = '', $options = array(), $mustCreate = FALSE, $zabusCropFal = NULL) {
-		//$zabusCropFal = NULL;
+		//$this->scalecmd = "-resize";
 		if ($this->NO_IMAGE_MAGICK) {
 			// Returning file info right away
 			return $this->getImageDimensions($imagefile);
@@ -66,10 +66,11 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 					$cropValues = explode(",",$zabusCropFal);
 					$cWidth = $cropValues[self::Z_CROP_FAL_W];
 					$cHeight = $cropValues[self::Z_CROP_FAL_H];
+					
 					$ratio = ($cropValues[self::Z_CROP_FAL_X2] - $cropValues[self::Z_CROP_FAL_X1]) / ($cropValues[self::Z_CROP_FAL_Y2] - $cropValues[self::Z_CROP_FAL_Y1]);
 					$aspectRatio = $ratio = ($cropValues[self::Z_CROP_FAL_X2] - $cropValues[self::Z_CROP_FAL_X1]) .":". ($cropValues[self::Z_CROP_FAL_Y2] - $cropValues[self::Z_CROP_FAL_Y1]);
 				}
-				if ($aspectRatio > 0) {
+				/*if ($aspectRatio > 0) {
 					$aspect = preg_split('/:/', $aspectRatio, 2);
 					if ($options['maxW'] && !$w) {
 						$w = $options['maxW'] . 'c';
@@ -82,10 +83,13 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 					} elseif ($h && $w) {
 						$w = intval($h * ($aspect[0] / $aspect[1])) . 'c';
 						$h = $h . 'c';
+					} elseif($h == '' && $w == '') {
+						$w = $cropValues[self::Z_CROP_FAL_W];
+						$h = $cropValues[self::Z_CROP_FAL_H];
 					}
-				}
-				//////////////////////////////////////////////
+				}*/
 				
+				//////////////////////////////////////////////
 				$data = $this->getImageScale($info, $w, $h, $options);
 				$w = $data['origW'];
 				$h = $data['origH'];
@@ -95,6 +99,10 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 				// given or if the destination w/h matches the original image
 				// dimensions or if the option to not scale the image is set)
 				$noScale = !$w && !$h || $data[0] == $info[0] && $data[1] == $info[1] || $options['noScale'];
+				
+				if($zabusCropFal != NULL)
+					$noScale = false;
+				
 				if ($noScale && !$data['crs'] && !$params && !$frame && $newExt == $info[2] && !$mustCreate) {
 					// Set the new width and height before returning,
 					// if the noScale option is set
@@ -105,8 +113,11 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 					$info[3] = $imagefile;
 					return $info;
 				}
+				$file['w'] = $info[0];
+				$file['h'] = $info[1];
 				$info[0] = $data[0];
 				$info[1] = $data[1];
+				
 				$frame = $this->noFramePrepended ? '' : intval($frame);
 				if (!$params) {
 					$params = $this->cmds[$newExt];
@@ -135,19 +146,36 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 
 
 					$xRatio = $data['origW'] / $cWidth;
+					
+					$xRatio = $yRatio = 1;
+					
 					$offsetX1 = intval($cropValues[self::Z_CROP_FAL_X1] * $xRatio);
 					$yRatio = $data['origH'] / $cHeight;
 					$offsetY1 = intval($cropValues[self::Z_CROP_FAL_Y1] * $yRatio);
-
-
+					
+					$offsetX1 = $cropValues[self::Z_CROP_FAL_X1];
+					$offsetY1 = $cropValues[self::Z_CROP_FAL_Y1];
+					
+					
+					if(($data['origW'] == $info[0] && $data['origH'] == $info[1]) || ($info[0] > $cropValues[self::Z_CROP_FAL_W]) || ($info[1] > $cropValues[self::Z_CROP_FAL_H]))
+					{
+						$info[0] = $cropValues[self::Z_CROP_FAL_W]; 
+						$info[1] = $cropValues[self::Z_CROP_FAL_H]; 
+					}
+					
+					$data['origW'] = $cropValues[self::Z_CROP_FAL_W]; 
+					$data['origH'] = $cropValues[self::Z_CROP_FAL_H]; 
+					//$data['origW'] = "125";
 					$cropParams .= ' -crop ' . $data['origW'] . 'x' . $data['origH'] . '+' . $offsetX1 . '+' . $offsetY1 . ' ';
-					$info[0] = intval($data['origW'] + ($file['w'] - $cWidth) * $xRatio);
-					$info[1] = intval($data['origH'] + ($file['h'] - $cHeight) * $yRatio);
+					
+					
+					//$info[0] = intval($data['origW'] + ($file['w'] - $cWidth) * $xRatio);
+					//$info[1] = intval($data['origH'] + ($file['h'] - $cHeight) * $yRatio);
 					$params = $paramsOrg . $cropParams;
 				}
 				////////////////////
 				
-				$command = $this->scalecmd . ' ' . $info[0] . 'x' . $info[1] . '! ' . $params . ' ';
+				$command =  $params . ' +repage '.$this->scalecmd . ' ' . $info[0] . 'x' . $info[1] . '! ';
 				$cropscale = $data['crs'] ? 'crs-V' . $data['cropV'] . 'H' . $data['cropH'] : '';
 				if ($this->alternativeOutputKey) {
 					$theOutputName = \TYPO3\CMS\Core\Utility\GeneralUtility::shortMD5($command . $cropscale . basename($imagefile) . $this->alternativeOutputKey . '[' . $frame . ']');
@@ -161,8 +189,10 @@ class GifBuilder extends \TYPO3\CMS\Frontend\Imaging\GifBuilder {
 				// Making the temporary filename:
 				$this->createTempSubDir('pics/');
 				$output = $this->absPrefix . $this->tempPath . 'pics/' . $this->filenamePrefix . $theOutputName . '.' . $newExt;
+
 				// Register temporary filename:
 				$GLOBALS['TEMP_IMAGES_ON_PAGE'][] = $output;
+				
 				if ($this->dontCheckForExistingTempFile || !$this->file_exists_typo3temp_file($output, $imagefile)) {
 					$this->imageMagickExec($imagefile, $output, $command, $frame);
 				}

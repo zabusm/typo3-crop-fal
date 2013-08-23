@@ -52,15 +52,15 @@ class ContentObjectRenderer extends \TYPO3\CMS\Frontend\ContentObject\ContentObj
 							
 							$cropFal = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 							$fullAspect = $cropFal['tx_zabus_crop_fal'];
-							
 							$aspect = explode(',',$cropFal['tx_zabus_crop_fal']);
 							//////////////////////////////////////////////////
 						}
 					}
-
 					if (\TYPO3\CMS\Core\Utility\MathUtility::canBeInterpretedAsInteger($file)) {
 						if (!empty($fileArray['treatIdAsReference'])) {
-							$fileObject = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance()->getFileReferenceObject($file)->getOriginalFile();
+							$tempfileObject = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance()->getFileReferenceObject($file);
+							$fileObject = $tempfileObject->getOriginalFile();
+							$fullAspect = $tempfileObject->getProperty('tx_zabus_crop_fal');
 						} else {
 							$fileObject = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance()->getFileObject($file);
 						}
@@ -118,7 +118,7 @@ class ContentObjectRenderer extends \TYPO3\CMS\Frontend\ContentObject\ContentObj
 						}
 						$processedFileObject = $fileObject->process(\TYPO3\CMS\Core\Resource\ProcessedFile::CONTEXT_IMAGECROPSCALEMASK, $processingConfiguration);
 						$hash = $processedFileObject->calculateChecksum();
-
+						
 						// store info in the TSFE template cache (kept for backwards compatibility)
 						if ($processedFileObject->isProcessed() && !isset($GLOBALS['TSFE']->tmpl->fileCache[$hash])) {
 							$GLOBALS['TSFE']->tmpl->fileCache[$hash] = array(
@@ -161,9 +161,8 @@ class ContentObjectRenderer extends \TYPO3\CMS\Frontend\ContentObject\ContentObj
 		foreach($picture as $frame){
 			$frame->cropImage($width, $height, $x, $y);
 		}*/
-		//\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($imageResource);
-		
-		
+
+	
 		///////////////
 		// Hook 'getImgResource': Post-processing of image resources
 		if (isset($imageResource)) {

@@ -45,8 +45,8 @@ if(isset($_GET['aspectratio']))
 	<form action="" method="post" onsubmit="">
 		<input type="hidden" id="x" name="x" value="<?php echo $x;?>" />
 		<input type="hidden" id="y" name="y" value="<?php echo $y;?>" />
-		<input type="hidden" id="x2" name="x" value="<?php echo $x2;?>" />
-		<input type="hidden" id="y2" name="y" value="<?php echo $y2;?>" />
+		<input type="hidden" id="x2" name="x2" value="<?php echo $x2;?>" />
+		<input type="hidden" id="y2" name="y2" value="<?php echo $y2;?>" />
 		<input type="hidden" id="w" name="w" value="<?php echo $w;?>" />
 		<input type="hidden" id="h" name="h" value="<?php echo $h;?>" />
 		<div>
