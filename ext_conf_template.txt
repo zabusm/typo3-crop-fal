@@ -1,0 +1,4 @@
+  # cat=basic; type=string; label=Ratios: Comma seperated list of ratios
+ratios = 16:9,4:3
+  # cat=basic; type=string; label=Ratios: Comma seperated list of ratios-Index
+ratioIndexes = 16:9 Ratio,4:3

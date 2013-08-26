@@ -10,6 +10,20 @@ $file = $fileRep->findByUid($uid);
 
 $x = $y = $w = $h = $x2 = $y2 = "";
 
+$conf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['crop_fal']);
+
+$ratio = array();
+if(isset($conf['ratios']))
+	$ratios = explode(',',$conf['ratios']);
+else
+	$ratios[] = "16:9";
+
+$ratio = array();
+if(isset($conf['ratioIndexes']))
+	$ratioIndexes = explode(',',$conf['ratioIndexes']);
+else
+	$ratioIndexes[] = "16:9 Ratio";	
+	
 if(isset($_GET['aspectratio']))
 {
 	$aspecRatio = explode(',',$_GET['aspectratio']);
@@ -21,7 +35,9 @@ if(isset($_GET['aspectratio']))
 	$y2 = $aspecRatio[5];
 }
 
-//\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($file);
+$imageRatio = $file->getProperty("width").":".$file->getProperty("height");
+
+//\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($file->getProperty("height"));
 ?>
 <html>
 	<head>
@@ -53,8 +69,12 @@ if(isset($_GET['aspectratio']))
 			Aspect:
 
 			<select name="ratio" id="ratio">
-				<option value="0:0">None</option>
-				<option value="16:9" >16:9</option>
+				<option value="0:0">-----</option>
+				<option value="<?php echo $imageRatio; ?>">Proportionen beibehalten</option>
+				<?php
+					foreach($ratios as $index => $ratio)
+						echo '<option value="'.$ratio.'">'.$ratioIndexes[$index].'</option>';
+				?>
 			</select>
 		</div>
 		<div><a href="#" onclick="crop();return false;">Crop</button></div>
