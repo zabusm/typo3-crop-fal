@@ -12,7 +12,7 @@
 
 $EM_CONF[$_EXTKEY] = array(
 	'title' => 'Crop Images',
-	'description' => '',
+	'description' => 'crop your images',
 	'category' => 'be',
 	'author' => 'Matthias Swiercz',
 	'author_email' => 'zabusm@gmail.com',
